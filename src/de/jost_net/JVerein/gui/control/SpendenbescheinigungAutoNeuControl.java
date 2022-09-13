@@ -161,6 +161,7 @@ public class SpendenbescheinigungAutoNeuControl extends AbstractControl
             spbescheinigung.setZeile3(sp1.getMitglied().getStrasse());
             spbescheinigung.setZeile4(
                 sp1.getMitglied().getPlz() + " " + sp1.getMitglied().getOrt());
+            spbescheinigung.setZeile5(sp1.getMitglied().getStaat());
             spbescheinigung.setErsatzAufwendungen(false);
             spbescheinigung.setBescheinigungsdatum(new Date());
             spbescheinigung.setSpendedatum(new Date());
