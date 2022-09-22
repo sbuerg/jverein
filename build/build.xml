@@ -23,22 +23,6 @@
 			<fileset dir="lib">
 				<include name="**/*.jar" />
 			</fileset>
-			<pathelement path="../hibiscus/bin" />
-			<pathelement path="../jameica/bin" />
-			<fileset dir="../jameica/lib">
-				<include name="**/*.jar" />
-				<exclude name="apache_xmlrpc/**" />
-				<exclude name="bouncycastle/**" />
-				<exclude name="mckoi/**" />
-				<exclude name="h2/**" />
-				<exclude name="mysql/**" />
-				<exclude name="jakarta_commons/**" />
-				<exclude name="paperclips/**" />
-				<exclude name="swt/linux65/**" />
-				<exclude name="swt/macos/**" />
-				<exclude name="swt/win32/**" />
-				<exclude name="swt/win64/**" />
-			</fileset>
 		</path>
 
 		<path id="classpath">
