@@ -23,9 +23,6 @@
 			<fileset dir="lib">
 				<include name="**/*.jar" />
 			</fileset>
-			<fileset dir="../hibiscus/lib">
-				<include name="**/*.jar" />
-			</fileset>
 			<pathelement path="../hibiscus/bin" />
 			<pathelement path="../jameica/bin" />
 			<fileset dir="../jameica/lib">
