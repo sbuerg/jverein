@@ -1312,19 +1312,11 @@ public class BuchungsControl extends AbstractControl
 
       BuchungsjournalSortDialog djs = new BuchungsjournalSortDialog(
           BuchungsjournalSortDialog.POSITION_CENTER);
+      
+      // 20220823: sbuer: Statische Variablen fuer neue Sortiermöglichkeiten
       String sort = djs.open();
-      if (sort.equals(BuchungsjournalSortDialog.DATUM))
-      {
-        query.setOrderDatumAuszugsnummerBlattnummer();
-      }
-      else if (sort.equals(BuchungsjournalSortDialog.DATUM_NAME))
-      {
-        query.setOrderDatumName();
-      }
-      else
-      {
-        query.setOrderID();
-      }
+      query.setOrdername(sort);
+
       FileDialog fd = new FileDialog(GUI.getShell(), SWT.SAVE);
       fd.setText("Ausgabedatei wählen.");
 

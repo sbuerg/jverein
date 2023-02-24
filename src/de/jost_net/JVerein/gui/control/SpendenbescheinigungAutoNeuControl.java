@@ -72,7 +72,12 @@ public class SpendenbescheinigungAutoNeuControl extends AbstractControl
     }
     Calendar cal = Calendar.getInstance();
     jahr = new SelectInput(
-        new Object[] { cal.get(Calendar.YEAR), cal.get(Calendar.YEAR) - 1 },
+            new Object[] {
+                    cal.get(Calendar.YEAR),
+                    cal.get(Calendar.YEAR) - 1,
+                    cal.get(Calendar.YEAR) - 2,
+                    cal.get(Calendar.YEAR) - 3
+                },
         cal.get(Calendar.YEAR));
     jahr.addListener(new Listener()
     {
@@ -161,6 +166,7 @@ public class SpendenbescheinigungAutoNeuControl extends AbstractControl
             spbescheinigung.setZeile3(sp1.getMitglied().getStrasse());
             spbescheinigung.setZeile4(
                 sp1.getMitglied().getPlz() + " " + sp1.getMitglied().getOrt());
+            spbescheinigung.setZeile5(sp1.getMitglied().getStaat());
             spbescheinigung.setErsatzAufwendungen(false);
             spbescheinigung.setBescheinigungsdatum(new Date());
             spbescheinigung.setSpendedatum(new Date());

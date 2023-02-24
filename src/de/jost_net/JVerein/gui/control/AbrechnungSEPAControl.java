@@ -31,6 +31,7 @@ import de.jost_net.JVerein.Einstellungen;
 import de.jost_net.JVerein.DBTools.DBTransaction;
 import de.jost_net.JVerein.gui.input.AbbuchungsmodusInput;
 import de.jost_net.JVerein.io.AbrechnungSEPA;
+import de.jost_net.JVerein.io.AbrechnungSEPA_hbci4java;
 import de.jost_net.JVerein.io.AbrechnungSEPAParam;
 import de.jost_net.JVerein.io.Bankarbeitstage;
 import de.jost_net.JVerein.keys.Abrechnungsausgabe;
@@ -473,7 +474,10 @@ public class AbrechnungSEPAControl extends AbstractControl
           {
 
             DBTransaction.starten();
-            new AbrechnungSEPA(abupar, monitor);
+            
+            // 202208013: Umstellung von obantoo auf hbci4java
+            // new AbrechnungSEPA(abupar, monitor);
+            new AbrechnungSEPA_hbci4java(abupar, monitor);
             DBTransaction.commit();
 
             monitor.setPercentComplete(100);
