@@ -9,6 +9,7 @@ package de.jost_net.JVerein.io;
 // -------------------------------------------------
 // Aenderungshistorie:
 // 20220804 : sbuer: Erstes Release
+// 20230225 : sbuer: Fix für Dateiausgabe Hibiscus. Hier wird keine Sepa-Versionsabfrage benötigt
 
 import java.math.BigDecimal;
 import java.rmi.RemoteException;
@@ -174,12 +175,19 @@ public class AbrechnungSEPA_hbci4java {
 	    sepagueltigkeit = Calendar.getInstance();
 	    sepagueltigkeit.add(Calendar.MONTH, -36);
 	    
-	    // 20220803: sbuer: Relikt aus obantoo und bleibt erstmal als DUMMY erhalten und wird nicht mehr gefuellt
+	    // 20230225: sbuer: Wird benötigt damit Ausgabeformat Hibiscus noch sauber funktioniert
 	    JVereinBasislastschrift lastschrift = new JVereinBasislastschrift();
-	    
-	    // 20220803: sbuer: Anpassungen für hbci4java
-	    PainVersionDialog d = new PainVersionDialog(org.kapott.hbci.sepa.SepaVersion.Type.PAIN_008);
-	    final SepaVersion version = (SepaVersion) d.open();
+
+	    // 20230225: sbuer: Die Abfrage welche SEPA-XML verwendet werden soll, darf nur bei Ausgabeformat Datei erfolgen
+	    final SepaVersion version;
+	    if (param.abbuchungsausgabe == Abrechnungsausgabe.HIBISCUS) {
+	    	// 20230225: sbuer: Dient der Kompatibilität. Es wird die aktuellste Version manuell gesetzt
+	    	version = (SepaVersion) (org.kapott.hbci.sepa.SepaVersion.PAIN_008_003_02);
+	    } else {
+		    // 20220803: sbuer: Anpassungen für hbci4java
+		    PainVersionDialog d = new PainVersionDialog(org.kapott.hbci.sepa.SepaVersion.Type.PAIN_008);
+		    version = (SepaVersion) d.open();
+	    }
 	    
 	    // Epochtime als sepaid und pmtinfid
 	    Long epochtime = Calendar.getInstance().getTimeInMillis();
@@ -221,39 +229,43 @@ public class AbrechnungSEPA_hbci4java {
 	    }
 
 	    monitor.log(counter_all + " abgerechnete Fälle, davon " + counter_frst + " FRST, " + counter_rcur + " RCUR");
-	    // Lastschrift Datei RCUR erzeugen: Aber nur wenn auch welche gezaehlt wurden
-	    if ( counter_frst > 0 ) {
-	    	final OutputStream os = new FileOutputStream(param.sepafileFRST);
-		    System.setProperty("sepa.pain.formatted","true");
-		    ISEPAGenerator sepagenerator = SEPAGeneratorFactory.get("LastSEPA",version);
-		    try
-		    {
-			    sepagenerator.generate(lastschriftFRST,os,true);
-		    }
-	        catch (IOException e)
-	        {
-	          Logger.error("Generieren der SEPA-XML FRST fehlgeschlagen!", e);
-	        }
-		    Logger.info("Genieren der SEPA-XML FRST erfolgreich : " + param.sepafileFRST);
-		    monitor.log("Genieren der SEPA-XML FRST erfolgreich : " + param.sepafileFRST);
-	    }
 	    
-	    // Lastschrift Datei RCUR erzeugen: Aber nur wenn auch welche gezaehlt wurden	    
-	    if ( counter_rcur > 0 ) {
-	    	final OutputStream os = new FileOutputStream(param.sepafileRCUR);
-		    System.setProperty("sepa.pain.formatted","true");
-		    ISEPAGenerator sepagenerator = SEPAGeneratorFactory.get("LastSEPA",version);
-		    try
-		    {
-			    sepagenerator.generate(lastschriftRCUR,os,true);
+	    // 20230225: sbuer: Bei Ausgabeformat <> HIBISCUS dürfen nur die SEPA-XML ins Filesystem geschrieben werden
+	    if (param.abbuchungsausgabe != Abrechnungsausgabe.HIBISCUS) {
+		    // Lastschrift Datei RCUR erzeugen: Aber nur wenn auch welche gezaehlt wurden
+		    if ( counter_frst > 0 ) {
+		    	final OutputStream os = new FileOutputStream(param.sepafileFRST);
+			    System.setProperty("sepa.pain.formatted","true");
+			    ISEPAGenerator sepagenerator = SEPAGeneratorFactory.get("LastSEPA",version);
+			    try
+			    {
+				    sepagenerator.generate(lastschriftFRST,os,true);
+			    }
+		        catch (IOException e)
+		        {
+		          Logger.error("Generieren der SEPA-XML FRST fehlgeschlagen!", e);
+		        }
+			    Logger.info("Genieren der SEPA-XML FRST erfolgreich : " + param.sepafileFRST);
+			    monitor.log("Genieren der SEPA-XML FRST erfolgreich : " + param.sepafileFRST);
 		    }
-	        catch (IOException e)
-	        {
-	          Logger.error("Generieren der SEPA-XML RCUR fehlgeschlagen!", e);
-	        }
-		    Logger.info("Genieren der SEPA-XML RCUR erfolgreich : " + param.sepafileRCUR);
-		    monitor.log("Genieren der SEPA-XML RCUR erfolgreich : " + param.sepafileRCUR);
-	    }	    
+		    
+		    // Lastschrift Datei RCUR erzeugen: Aber nur wenn auch welche gezaehlt wurden	    
+		    if ( counter_rcur > 0 ) {
+		    	final OutputStream os = new FileOutputStream(param.sepafileRCUR);
+			    System.setProperty("sepa.pain.formatted","true");
+			    ISEPAGenerator sepagenerator = SEPAGeneratorFactory.get("LastSEPA",version);
+			    try
+			    {
+				    sepagenerator.generate(lastschriftRCUR,os,true);
+			    }
+		        catch (IOException e)
+		        {
+		          Logger.error("Generieren der SEPA-XML RCUR fehlgeschlagen!", e);
+		        }
+			    Logger.info("Genieren der SEPA-XML RCUR erfolgreich : " + param.sepafileRCUR);
+			    monitor.log("Genieren der SEPA-XML RCUR erfolgreich : " + param.sepafileRCUR);
+		    }	
+	    }
 	   
 
 	    ArrayList<Zahler> z = lastschrift.getZahler();
@@ -348,6 +360,8 @@ public class AbrechnungSEPA_hbci4java {
 	    monitor.setPercentComplete(100);
 	    if (param.sepaprint)
 	    {
+	    	System.out.println("param.pdffileFRST : " + param.pdffileFRST);
+	    	System.out.println("param.pdffileRCUR : " + param.pdffileRCUR);
 	      ausdruckenSEPA(lastschrift, param.pdffileFRST, param.pdffileRCUR);
 	    }
 	  }
@@ -462,9 +476,10 @@ public class AbrechnungSEPA_hbci4java {
 	        // Da alles in z ueberfuehrt wird, muß jetzt hier geprueft werden ob das lastschrift property gefuellt werden kann
 	        if (z != null)
 	        {
-	        // 20220804: sbuer: Anpasung fur hbci4java
-	        // lastschrift.add(z);
-	        lastschrift_fillup(z);
+	        // 20220804: sbuer: Für Ausgabeformat Datei (hbci4java)
+		    lastschrift_fillup(z);
+	        // 20230225: sbuer: Für Ausgabeformat Hibiscus
+	        lastschrift.add(z);
 	        }
 	      }
 	    }
@@ -650,9 +665,10 @@ public class AbrechnungSEPA_hbci4java {
 	                m.getMandatSequence().getCode());
 	            zahler.setName(m.getKontoinhaber(1));
 	            zahler.setVerwendungszweck(vzweck);
-		        // 20220804: sbuer: Anpasung fur hbci4java
-		        // lastschrift.add(zahler);
-		        lastschrift_fillup(zahler);
+		        // 20220804: sbuer: Für Ausgabeformat Datei (hbci4java)
+			    lastschrift_fillup(zahler);
+		        // 20230225: sbuer: Für Ausgabeformat Hibiscus
+		        lastschrift.add(zahler);
 	          }
 	          catch (Exception e)
 	          {
@@ -730,9 +746,10 @@ public class AbrechnungSEPA_hbci4java {
 	        zahler.setFaelligkeit(param.faelligkeit1);
 	        zahler.setName(kt.getName());
 	        zahler.setVerwendungszweck(kt.getVZweck1());
-	        // 20220804: sbuer: Anpasung fur hbci4java
-	        // lastschrift.add(zahler);
-	        lastschrift_fillup(zahler);
+	        // 20220804: sbuer: Für Ausgabeformat Datei (hbci4java)
+		    lastschrift_fillup(zahler);
+	        // 20230225: sbuer: Für Ausgabeformat Hibiscus
+	        lastschrift.add(zahler);
 	        kt.setAbbudatum();
 	        kt.store();
 	      }
